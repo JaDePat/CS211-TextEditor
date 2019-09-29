@@ -16,21 +16,31 @@
 using namespace std;
 
 //initialized variables
-int num_rows = 0;
-int num_cols = 0;
-//int x1 = 0;
-//int y1 = 0;
-int top = 0;
-int sub_rows = 0;
-int sub_cols = 0;
-WINDOW* sub = nullptr;
+int num_rows = 0;      
+int num_cols = 0;      
+int top = 0;                         
+int sub_rows = 0;      
+int sub_cols = 0;      
+int y = 0;
+int x = 0;
+WINDOW* sub = nullptr; 
 
 //array of character for catching input string
 char input[80];
 vector<vector<char>> saver(0);
 vector<char> char_saver(0);
 
+//function for typing to the window
 void typing();
+
+//function for scrolling down
+void scrollDown();
+
+//function for scrolling up
+void scrollUp();
+
+//displays file contents
+void fileContents();
 
 int main(int argc, char* argv[])
 {
@@ -105,18 +115,18 @@ int main(int argc, char* argv[])
 	//allows user to open and display a file
 	ifstream myfile;
 	myfile.open(input);
-	char fileContents;
+	char file_chars;
 	if (myfile.is_open())
 	{
 		while (myfile.good() == true)
 		{
 
 			//collects the characters from the file
-			myfile.get(fileContents);
-			char_saver.push_back(fileContents);
+			myfile.get(file_chars);
+			char_saver.push_back(file_chars);
 
 			//pushes back the vector of characters into the vector of vectors
-			if (fileContents == '\n')
+			if (file_chars == '\n')
 			{
 				saver.push_back(char_saver);
 				char_saver.clear();
@@ -143,31 +153,7 @@ int main(int argc, char* argv[])
 	}
 
 	//adds contents of the file to the screen
-	if (saver.size() > sub_rows)
-	{
-		wmove(sub, 0, 0);
-		int difference = saver.size() - sub_rows - 2;
-		top = difference;
-		for (int i = difference; i < saver.size(); i++)
-		{
-			for (int j = 0; j < saver[i].size(); j++)
-			{
-				waddch(sub, saver[i][j]);
-			}
-		}
-
-
-	}
-	else
-	{
-		for (int i = 0; i < saver.size(); i++)
-		{
-			for (int j = 0; j < saver[i].size(); j++)
-			{
-				waddch(sub, saver[i][j]);
-			}
-		}
-	}
+	fileContents();
 
 	//lets user type
 	typing();
@@ -187,9 +173,7 @@ void typing()
 	{
 		noecho();
 		result = wgetch(sub);
-		int y, x;
 		getyx(sub, y, x);
-
 		switch (result)
 		{
 
@@ -202,79 +186,21 @@ void typing()
 
 			//custom enter key
 		case 10:
-			y++;
-			x = 0;
-			wmove(sub, y, x);
+			waddch(sub, '\n');
+			result = '\n';
 			break;
 
 			//arrow keys
 		case KEY_UP:
-			if (saver.size() > sub_rows)
-			{
-				y--;
-				wmove(sub, y, x);
-				//allows user to scroll up
-				if (y < 0)
-				{
-					wclear(sub);
-					wmove(sub, 0, 0);
-					int newTop = top - 1;
-					for (int i = newTop; i < (sub_rows + newTop) && i < saver.size(); i++)
-					{
-						for (int j = 0; j < saver[i].size(); j++)
-						{
-							waddch(sub, saver[i][j]);
-						}
-					}
-					wmove(sub, 0, x);
-					top--;
-					if (top < 1)
-					{
-						top++;
-					}
-				}
-			}
-			else
-			{
-				y--;
-				wmove(sub, y, x);
-			}
+			
+			//Moves the cursor up and scrolls through text
+			scrollUp();
 			break;
 		case KEY_DOWN:
-			if (saver.size() > sub_rows)
-			{
-				y++;
-				wmove(sub, y, x);
-				//allows user to scroll down
-				if (y == sub_rows)
-				{
-					wclear(sub);
-					wmove(sub, 0, 0);
-					int newTop = top + 1;
-					int bottom = sub_rows + newTop;
-					for (int i = newTop; i < bottom && i < saver.size(); i++)
-					{
-						for (int j = 0; j < saver[i].size(); j++)
-						{
-							waddch(sub, saver[i][j]);
-						}
-					}
-					wmove(sub, sub_rows - 1, x);
-					top++;
+			
+			//Moves the cursor down and scrolls through text
+			scrollDown();
 
-					//keeps top from increasing past size of vector
-					if (top == saver.size())
-					{
-						top--;
-					}
-
-				}
-			}
-			else
-			{
-				y++;
-				wmove(sub, y, x);
-			}
 			break;
 		case KEY_RIGHT:
 			x++;
@@ -293,9 +219,126 @@ void typing()
 			}
 
 			mvwaddch(sub, y, x, result);
+			char_saver.push_back(result);
 
+		}
+
+		if (char_saver.size() == sub_cols || result == '\n')
+		{
+			saver.push_back(char_saver);
+			char_saver.clear();
 		}
 
 		wrefresh(sub);
 	}
+}
+
+void scrollDown()
+{
+	if (saver.size() > sub_rows)
+	{
+		y++;
+		wmove(sub, y, x);
+
+		//allows user to scroll down
+		if (y == sub_rows)
+		{
+			wclear(sub);
+			wmove(sub, 0, 0);
+			int newTop = top + 1;
+			int bottom = sub_rows + newTop;
+			for (int i = newTop; i < bottom && i < saver.size(); i++)
+			{
+				for (int j = 0; j < saver[i].size(); j++)
+				{
+					waddch(sub, saver[i][j]);
+				}
+			}
+			wmove(sub, sub_rows - 1, x);
+			top++;
+
+			//keeps top from increasing past size of vector
+			if (top == saver.size())
+			{
+				top--;
+			}
+
+		}
+	}
+	else
+	{
+		y++;
+		wmove(sub, y, x);
+	}
+	
+	wrefresh(sub);
+}
+
+void scrollUp()
+{
+	if (saver.size() > sub_rows)
+	{
+		y--;
+		wmove(sub, y, x);
+
+		//allows user to scroll up
+		if (y < 0)
+		{
+			wclear(sub);
+			wmove(sub, 0, 0);
+			int newTop = top - 1;
+			for (int i = newTop; i < (sub_rows + newTop) && i < saver.size(); i++)
+			{
+				for (int j = 0; j < saver[i].size(); j++)
+				{
+					waddch(sub, saver[i][j]);
+				}
+			}
+			wmove(sub, 0, x);
+			top--;
+			if (top < 1)
+			{
+				top++;
+			}
+		}
+	}
+	else
+	{
+		y--;
+		wmove(sub, y, x);
+	}
+
+	wrefresh(sub);
+}
+
+void fileContents()
+{
+	//adds contents of the file to the screen
+	if (saver.size() > sub_rows)
+	{
+		wmove(sub, 0, 0);
+		int difference = saver.size() - sub_rows - 2;
+		top = difference;
+		for (int i = difference; i < saver.size(); i++)
+		{
+			for (int j = 0; j < saver[i].size(); j++)
+			{
+				waddch(sub, saver[i][j]);
+			}
+		}
+
+
+	}
+	else          //Adds contents of file to screen for an input that is less than the
+	{                  //the number of rows within the window 
+		for (int i = 0; i < saver.size(); i++)
+		{
+			for (int j = 0; j < saver[i].size(); j++)
+			{
+				waddch(sub, saver[i][j]);
+			}
+		}
+	}
+
+	wrefresh(sub);
 }
