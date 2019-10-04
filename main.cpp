@@ -81,22 +81,6 @@ int main(int argc, char* argv[])
 	sub = newwin(sub_rows, sub_cols, 2, 1);
 	keypad(sub, TRUE);
 
-	//Checks if terminal can handle color. 
-	//Code from linuxjournal.com by Jim Hall
-	if (has_colors() == FALSE)
-	{
-		endwin();
-		printf("Your window does not support color\n");
-		exit(1);
-	}
-
-	/*start_color();
-	init_pair(1, COLOR_BLACK, COLOR_WHITE);
-	attron(COLOR_PAIR(1));
-	mvaddstr(0, 5, "FILE");
-	mvaddstr(0, 13, "EDIT");
-	attroff(COLOR_PAIR(1));*/
-
 	cbreak();
 
 	//displays cursor
@@ -141,6 +125,7 @@ int main(int argc, char* argv[])
 
 		//adds the final line into the 2d vector
 		saver.push_back(char_saver);
+		char_saver.clear();
 
 		//closes the file
 		myfile.close();
@@ -157,6 +142,17 @@ int main(int argc, char* argv[])
 
 	//lets user type
 	typing();
+
+	ofstream output_file;
+	output_file.open(input);
+	for (int i = 0; i < saver.size(); i++)
+	{
+		for (int j = 0; j < saver[i].size(); j++)
+		{
+			output_file << saver[i][j];
+		}
+	}
+	output_file.close();
 
 	endwin();
 
@@ -186,8 +182,9 @@ void typing()
 
 			//custom enter key
 		case 10:
-			waddch(sub, '\n');
-			result = '\n';
+			y++;
+			x = 0;
+			wmove(sub, y, x);
 			break;
 
 			//arrow keys
@@ -195,6 +192,7 @@ void typing()
 			
 			//Moves the cursor up and scrolls through text
 			scrollUp();
+
 			break;
 		case KEY_DOWN:
 			
@@ -215,18 +213,25 @@ void typing()
 			//moves the cursor down when user gets to the side of the screen
 			if (x == sub_cols)
 			{
-				waddch(sub, '\n');
+				y++;
+				x = 0;
+				wmove(sub, y, x);
 			}
 
 			mvwaddch(sub, y, x, result);
-			char_saver.push_back(result);
 
 		}
 
-		if (char_saver.size() == sub_cols || result == '\n')
+		//allows editing of text
+		if (result != KEY_UP && result != KEY_DOWN && result != KEY_LEFT && result != KEY_RIGHT 
+			&& result != 27)
 		{
-			saver.push_back(char_saver);
-			char_saver.clear();
+			getyx(sub, y, x);
+			int edit_y = y + top;
+			int edit_x = x - 8;
+			if (edit_x < 0)
+				edit_x = 7 + edit_x;
+			saver[edit_y][edit_x] = result;
 		}
 
 		wrefresh(sub);
@@ -287,6 +292,10 @@ void scrollUp()
 			wclear(sub);
 			wmove(sub, 0, 0);
 			int newTop = top - 1;
+			if (top == 0)
+			{
+				newTop = 0;
+			}
 			for (int i = newTop; i < (sub_rows + newTop) && i < saver.size(); i++)
 			{
 				for (int j = 0; j < saver[i].size(); j++)
@@ -296,9 +305,9 @@ void scrollUp()
 			}
 			wmove(sub, 0, x);
 			top--;
-			if (top < 1)
+			if (top <= 1)
 			{
-				top++;
+				top = 0;
 			}
 		}
 	}
