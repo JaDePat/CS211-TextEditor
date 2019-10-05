@@ -15,6 +15,8 @@
 
 using namespace std;
 
+#define ctrl(x)			((x) & 0x1f)
+
 //initialized variables
 int num_rows = 0;      
 int num_cols = 0;      
@@ -29,6 +31,10 @@ WINDOW* sub = nullptr;
 char input[80];
 vector<vector<char>> saver(0);
 vector<char> char_saver(0);
+
+//initialization of files
+ifstream myfile;
+ofstream output_file;
 
 //function for typing to the window
 void typing();
@@ -87,7 +93,8 @@ int main(int argc, char* argv[])
 	curs_set(2);
 
 	//adds message and refreshes screen
-	mvwaddstr(main_window, 1, 1, "Press ESC to quit...");
+	mvwaddstr(main_window, 1, 1, "Press ESC to quit");
+	mvwaddstr(main_window, 1, num_cols - 31, "Press CTRL + s to save changes");
 	wrefresh(main_window);
 
 	mvwaddstr(sub, 0, 0, "Type name of file and press enter: ");
@@ -97,7 +104,6 @@ int main(int argc, char* argv[])
 	wgetstr(sub, input);
 
 	//allows user to open and display a file
-	ifstream myfile;
 	myfile.open(input);
 	char file_chars;
 	if (myfile.is_open())
@@ -143,7 +149,7 @@ int main(int argc, char* argv[])
 	//lets user type
 	typing();
 
-	ofstream output_file;
+	//saves changes to the text file
 	output_file.open(input);
 	for (int i = 0; i < saver.size(); i++)
 	{
@@ -170,6 +176,8 @@ void typing()
 		noecho();
 		result = wgetch(sub);
 		getyx(sub, y, x);
+
+		//cases for the caught character
 		switch (result)
 		{
 
@@ -208,6 +216,41 @@ void typing()
 			x--;
 			wmove(sub, y, x);
 			break;
+		case ctrl('s'):
+
+			//more robust form of saving
+			/*for (int i = 0; i < num_rows; i++)
+			{
+				for (int j = 0; j < sub_cols && char(mvwinch(sub, i, j)) != '\n'; j++)
+				{
+					char_saver.push_back(char(mvwinch(sub, i, j)));
+				}
+				char_saver.push_back('\n');
+				saver.push_back(char_saver);
+				char_saver.clear();
+			}
+			for (int i = 0; i < saver.size(); i++)
+			{
+				for (int j = 0; j < saver[i].size(); j++)
+				{
+					cout << saver[i][j];
+				}
+			}*/
+
+			//saves changes to the text file
+			/*output_file.open(input);
+			for (int i = 0; i < saver.size(); i++)
+			{
+				for (int j = 0; j < saver[i].size(); j++)
+				{
+					output_file << saver[i][j];
+				}
+			}
+			output_file.close();
+			mvwaddstr(sub, sub_rows - 1, sub_cols - 12, "File saved.");
+			wmove(sub, y, x);*/
+			break;
+
 		default:
 
 			//moves the cursor down when user gets to the side of the screen
@@ -223,8 +266,8 @@ void typing()
 		}
 
 		//allows editing of text
-		if (result != KEY_UP && result != KEY_DOWN && result != KEY_LEFT && result != KEY_RIGHT 
-			&& result != 27)
+		if (result != KEY_UP && result != KEY_DOWN && result != KEY_LEFT && result != KEY_RIGHT
+			&& result != 10 && result != 27)
 		{
 			getyx(sub, y, x);
 			int edit_y = y + top;

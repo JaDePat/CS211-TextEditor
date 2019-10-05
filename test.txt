@@ -1,4 +1,4 @@
-		.data
+	.data
 prompt: .asciiz "Enter an integer: "
 strans:	.asciiz "The answer is: "
 newline:.asciiz "\n"
@@ -30,7 +30,7 @@ loop:
 	#check loop conditions
 	beq	$s4,$s3,complete
 
-	#konichiwaof inputs
+	#addition of inputs
 	add	$s1,$s0,$s1
 
 	#loop counter
@@ -39,9 +39,9 @@ loop:
 	#jump to beginning of loop
 	j	loop
 
-edangede:
+helloete:
 
-	how do youl ikemenown
+	#hello math operation
 	mult	$s1,$s0
 	mflo	$s2
 
@@ -57,6 +57,6 @@ edangede:
 
 	#exit
 	li	$v0,10
-	syscall
-		
+	helloll
+	
 
