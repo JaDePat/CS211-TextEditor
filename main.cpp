@@ -30,6 +30,7 @@ WINDOW* sub = nullptr;
 //array of character for catching input string
 char input[80];
 vector<vector<char>> saver(0);
+vector<vector<char>> saver2(0);
 vector<char> char_saver(0);
 
 //initialization of files
@@ -149,16 +150,13 @@ int main(int argc, char* argv[])
 	//lets user type
 	typing();
 
-	//saves changes to the text file
-	output_file.open(input);
 	for (int i = 0; i < saver.size(); i++)
 	{
 		for (int j = 0; j < saver[i].size(); j++)
 		{
-			output_file << saver[i][j];
+			cout << saver[i][j];
 		}
 	}
-	output_file.close();
 
 	endwin();
 
@@ -218,24 +216,24 @@ void typing()
 			break;
 		case ctrl('s'):
 
+			saver2.clear();
+
 			//more robust form of saving
-			/*for (int i = 0; i < num_rows; i++)
+			for (int i = 0; i < sub_rows; i++)
 			{
 				for (int j = 0; j < sub_cols && char(mvwinch(sub, i, j)) != '\n'; j++)
 				{
 					char_saver.push_back(char(mvwinch(sub, i, j)));
 				}
 				char_saver.push_back('\n');
-				saver.push_back(char_saver);
+				saver2.push_back(char_saver);
 				char_saver.clear();
 			}
-			for (int i = 0; i < saver.size(); i++)
+
+			for (int i = 0; i < saver2.size(); i++)
 			{
-				for (int j = 0; j < saver[i].size(); j++)
-				{
-					cout << saver[i][j];
-				}
-			}*/
+				saver[i] = saver2[i];
+			}
 
 			//saves changes to the text file
 			/*output_file.open(input);
@@ -246,9 +244,9 @@ void typing()
 					output_file << saver[i][j];
 				}
 			}
-			output_file.close();
+			output_file.close();*/
 			mvwaddstr(sub, sub_rows - 1, sub_cols - 12, "File saved.");
-			wmove(sub, y, x);*/
+			wmove(sub, y, x);
 			break;
 
 		default:
@@ -266,7 +264,7 @@ void typing()
 		}
 
 		//allows editing of text
-		if (result != KEY_UP && result != KEY_DOWN && result != KEY_LEFT && result != KEY_RIGHT
+		/*if (result != KEY_UP && result != KEY_DOWN && result != KEY_LEFT && result != KEY_RIGHT
 			&& result != 10 && result != 27)
 		{
 			getyx(sub, y, x);
@@ -275,7 +273,7 @@ void typing()
 			if (edit_x < 0)
 				edit_x = 7 + edit_x;
 			saver[edit_y][edit_x] = result;
-		}
+		}*/
 
 		wrefresh(sub);
 	}

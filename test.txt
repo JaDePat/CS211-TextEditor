@@ -39,9 +39,9 @@ loop:
 	#jump to beginning of loop
 	j	loop
 
-helloete:
+complete:
 
-	#hello math operation
+	#final math operation
 	mult	$s1,$s0
 	mflo	$s2
 
@@ -57,6 +57,5 @@ helloete:
 
 	#exit
 	li	$v0,10
-	helloll
+	syscall
 	
-
