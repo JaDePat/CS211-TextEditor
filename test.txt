@@ -33,29 +33,30 @@ loop:
 	#addition of inputs
 	add	$s1,$s0,$s1
 
-	#loop counter
-	add	$s4,$s5,$s4
-
-	#jump to beginning of loop
-	j	loop
-
-complete:
-
-	#final math operation
-	mult	$s1,$s0
-	mflo	$s2
-
-	#the answer string
-	li	$v0,4
-	la	$a0,strans
-	syscall
-
-	#print the answer
-	li	$v0,1
-	move	$a0,$s2
-	syscall
-
-	#exit
-	li	$v0,10
-	syscall
-	
+        #loop counter                                                                                                
+        add     $s4,$s5,$s4                                                                                          
+                                                                                                                     
+        #jump to beginning of loop                                                                                   
+        j       loop                                                                                                 
+                                                                                                                     
+complete:                                                                                                            
+                                                                                                                     
+        #final math operation                                                                                        
+        mult    $s1,$s0                                                                                              
+        mflo    $s2                                                                                                  
+                                                                                                                     
+        #the answer string                                                                                           
+        li      $v0,4                                                                                                
+        la      $a0,strans                                                                                           
+        syscall                                                                                                      
+                                                                                                                     
+        #print the answer                                                                                            
+        li      $v0,1                                                                                                
+        move    $a0,$s2                                                                                              
+        syscall                                                                                                      
+                                                                                                                     
+        #exit                                                                                                        
+        li      $v0,10                                                                                               
+        let's change this right quick                                                                                
+                                                                                                                     
+                                                                                                 

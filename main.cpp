@@ -3,6 +3,7 @@
 #include "curses.h"
 #include "panel.h"
 #include "curspriv.h"
+#include "Trie.h"
 #else
 //Linux / MacOS includes
 #include <curses.h>
@@ -18,6 +19,7 @@ using namespace std;
 #define ctrl(x)			((x) & 0x1f)
 
 //initialized variables
+int counter = 0;
 int num_rows = 0;      
 int num_cols = 0;      
 int top = 0;                         
@@ -25,13 +27,20 @@ int sub_rows = 0;
 int sub_cols = 0;      
 int y = 0;
 int x = 0;
-WINDOW* sub = nullptr; 
+WINDOW* sub = nullptr;
+WINDOW* auto_complete = nullptr;
+
+//initialize the trie
+Trie dictionary{};
 
 //array of character for catching input string
 char input[80];
 vector<vector<char>> saver(0);
 vector<vector<char>> saver2(0);
 vector<char> char_saver(0);
+vector<string> print{};
+vector<char> _previous_word{};
+string _check_trie = "";
 
 //initialization of files
 ifstream myfile;
@@ -71,6 +80,20 @@ int main(int argc, char* argv[])
 		}
 	}*/
 
+	//populates a trie tree with the c dictionary
+	ifstream _c_dictionary;
+	_c_dictionary.open("keywords.txt");
+	string _word_to_add;
+	if (_c_dictionary.good() == true)
+	{
+		while (_c_dictionary.good() == true)
+		{
+			getline(_c_dictionary, _word_to_add);
+			dictionary.addWord(_word_to_add);
+		}
+	}
+
+	//initializes the main window
 	WINDOW* main_window = nullptr;
 
 	//initialize screen, begin curses mode
@@ -94,69 +117,12 @@ int main(int argc, char* argv[])
 	curs_set(2);
 
 	//adds message and refreshes screen
-	mvwaddstr(main_window, 1, 1, "Press ESC to quit");
-	mvwaddstr(main_window, 1, num_cols - 31, "Press CTRL + s to save changes");
+	mvwaddstr(main_window, 1, 1, "*Press ESC to quit* *Press ALT + o for auto-complete* *Press CTRL + s to save*"
+		" *Press CTRL + p to open file*");
 	wrefresh(main_window);
-
-	mvwaddstr(sub, 0, 0, "Type name of file and press enter: ");
-	wrefresh(sub);
-
-	//gets the string for the file name
-	wgetstr(sub, input);
-
-	//allows user to open and display a file
-	myfile.open(input);
-	char file_chars;
-	if (myfile.is_open())
-	{
-		while (myfile.good() == true)
-		{
-
-			//collects the characters from the file
-			myfile.get(file_chars);
-			char_saver.push_back(file_chars);
-
-			//pushes back the vector of characters into the vector of vectors
-			if (file_chars == '\n')
-			{
-				saver.push_back(char_saver);
-				char_saver.clear();
-			}
-
-			if (char_saver.size() == sub_cols)
-			{
-				saver.push_back(char_saver);
-				char_saver.clear();
-			}
-		}
-
-		//adds the final line into the 2d vector
-		saver.push_back(char_saver);
-		char_saver.clear();
-
-		//closes the file
-		myfile.close();
-	}
-	else
-	{
-		string failOpen = "The file did not open or does not exist.";
-		strcpy_s(input, failOpen.c_str());
-		wprintw(sub, input);
-	}
-
-	//adds contents of the file to the screen
-	fileContents();
 
 	//lets user type
 	typing();
-
-	for (int i = 0; i < saver.size(); i++)
-	{
-		for (int j = 0; j < saver[i].size(); j++)
-		{
-			cout << saver[i][j];
-		}
-	}
 
 	endwin();
 
@@ -173,24 +139,62 @@ void typing()
 	{
 		noecho();
 		result = wgetch(sub);
+		_previous_word.push_back(result);
+		if (result == ' ')
+		{
+			_previous_word.clear();
+		}
 		getyx(sub, y, x);
+		int art = top;
+		int art2 = top;
 
 		//cases for the caught character
 		switch (result)
 		{
 
-			//Lets the user backspace and delete characters
+		//Will open autocomplete box
+		case ALT_O:
+			/*auto_complete = subwin(sub, 6, 10, y + 2, x + 3);
+			wborder(auto_complete, 0, 0, 0, 0, 0, 0, 0, 0);
+			wrefresh(auto_complete);*/
+
+			//get partially completed word
+			for (int i = 0; i < _previous_word.size() - 1; i++)
+			{
+				_check_trie += _previous_word[i];
+			}
+			_previous_word.clear();
+
+			//search for words in tree
+			print = dictionary.search(_check_trie);
+			if (print.empty() == true)
+			{
+				mvwaddstr(sub, y + 1, 0, "No such word exists in this library");
+				wmove(sub, y + 2, 0);
+			}
+			else
+			{
+				for (int i = 0; i < print.size(); i++)
+				{
+					mvwaddstr(sub, y++, x + 2, print[i].c_str());
+				}
+			}
+			print.clear();
+			_check_trie = "";
+			break;
+		//Lets the user backspace and delete characters
 		case 8:
 			wprintw(sub, "\b");
 			wprintw(sub, " ");
 			mvwaddch(sub, y, x, result);
 			break;
 
-			//custom enter key
+		//custom enter key
 		case 10:
 			y++;
 			x = 0;
 			wmove(sub, y, x);
+			_previous_word.clear();
 			break;
 
 			//arrow keys
@@ -214,14 +218,70 @@ void typing()
 			x--;
 			wmove(sub, y, x);
 			break;
+
+		//prompt to open a file
+		case ctrl('p'):
+
+			echo();
+			mvwaddstr(sub, y + 1, 0, "Type name of file and press enter: ");
+			wrefresh(sub);
+
+			//gets the string for the file name
+			wgetstr(sub, input);
+
+			//allows user to open and display a file
+			myfile.open(input);
+			char file_chars;
+			if (myfile.is_open())
+			{
+				while (myfile.good() == true)
+				{
+
+					//collects the characters from the file
+					myfile.get(file_chars);
+					char_saver.push_back(file_chars);
+
+					//pushes back the vector of characters into the vector of vectors
+					if (file_chars == '\n')
+					{
+						saver.push_back(char_saver);
+						char_saver.clear();
+					}
+
+					if (char_saver.size() == sub_cols)
+					{
+						saver.push_back(char_saver);
+						char_saver.clear();
+					}
+				}
+
+				//adds the final line into the 2d vector
+				saver.push_back(char_saver);
+				char_saver.clear();
+
+				noecho();
+
+				//closes the file
+				myfile.close();
+			}
+			else
+			{
+				string failOpen = "The file did not open or does not exist.";
+				strcpy_s(input, failOpen.c_str());
+				wprintw(sub, input);
+				getyx(sub, y, x);
+				wmove(sub, y + 1, 0);
+			}
+			fileContents();
+			break;
 		case ctrl('s'):
 
 			saver2.clear();
 
-			//more robust form of saving
+			//saves what's from the screen and updates the 2d vector saver
 			for (int i = 0; i < sub_rows; i++)
 			{
-				for (int j = 0; j < sub_cols && char(mvwinch(sub, i, j)) != '\n'; j++)
+				for (int j = 0; j < sub_cols - 1; j++)
 				{
 					char_saver.push_back(char(mvwinch(sub, i, j)));
 				}
@@ -230,13 +290,14 @@ void typing()
 				char_saver.clear();
 			}
 
-			for (int i = 0; i < saver2.size(); i++)
+			for (int i = 0; i < saver2.size() && art < saver.size(); i++)
 			{
-				saver[i] = saver2[i];
+				saver[art] = saver2[i];
+				art++;
 			}
 
 			//saves changes to the text file
-			/*output_file.open(input);
+			output_file.open(input);
 			for (int i = 0; i < saver.size(); i++)
 			{
 				for (int j = 0; j < saver[i].size(); j++)
@@ -244,7 +305,7 @@ void typing()
 					output_file << saver[i][j];
 				}
 			}
-			output_file.close();*/
+			output_file.close();
 			mvwaddstr(sub, sub_rows - 1, sub_cols - 12, "File saved.");
 			wmove(sub, y, x);
 			break;
@@ -258,23 +319,8 @@ void typing()
 				x = 0;
 				wmove(sub, y, x);
 			}
-
-			mvwaddch(sub, y, x, result);
-
+				mvwaddch(sub, y, x, result);
 		}
-
-		//allows editing of text
-		/*if (result != KEY_UP && result != KEY_DOWN && result != KEY_LEFT && result != KEY_RIGHT
-			&& result != 10 && result != 27)
-		{
-			getyx(sub, y, x);
-			int edit_y = y + top;
-			int edit_x = x - 8;
-			if (edit_x < 0)
-				edit_x = 7 + edit_x;
-			saver[edit_y][edit_x] = result;
-		}*/
-
 		wrefresh(sub);
 	}
 }
@@ -289,6 +335,7 @@ void scrollDown()
 		//allows user to scroll down
 		if (y == sub_rows)
 		{
+
 			wclear(sub);
 			wmove(sub, 0, 0);
 			int newTop = top + 1;
@@ -330,6 +377,7 @@ void scrollUp()
 		//allows user to scroll up
 		if (y < 0)
 		{
+
 			wclear(sub);
 			wmove(sub, 0, 0);
 			int newTop = top - 1;
