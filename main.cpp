@@ -154,33 +154,70 @@ void typing()
 
 		//Will open autocomplete box
 		case ALT_O:
-			/*auto_complete = subwin(sub, 6, 10, y + 2, x + 3);
-			wborder(auto_complete, 0, 0, 0, 0, 0, 0, 0, 0);
-			wrefresh(auto_complete);*/
 
 			//get partially completed word
 			for (int i = 0; i < _previous_word.size() - 1; i++)
 			{
 				_check_trie += _previous_word[i];
 			}
-			_previous_word.clear();
 
 			//search for words in tree
 			print = dictionary.search(_check_trie);
+
 			if (print.empty() == true)
 			{
-				mvwaddstr(sub, y + 1, 0, "No such word exists in this library");
+				mvwaddstr(sub, y + 1, 0, "No such word exists in this dictionary");
 				wmove(sub, y + 2, 0);
 			}
 			else
 			{
+				//create window
+				auto_complete = newwin(print.size() + 2, 20, y + 2, x + 3);
+				box(auto_complete, 0, 0);
+				wrefresh(auto_complete);
+				int y_axis = 1;
 				for (int i = 0; i < print.size(); i++)
 				{
-					mvwaddstr(sub, y++, x + 2, print[i].c_str());
+					mvwaddstr(auto_complete, y_axis++, 2, print[i].c_str());
 				}
+				wrefresh(auto_complete);
+				keypad(sub, false);
+				keypad(auto_complete, true);
+				curs_set(2);
+				wmove(auto_complete, 1, 2);
+				int ch = wgetch(auto_complete);
+				int screen_placement = 1;
+				int sub_x = 0;
+				int options = wgetch(auto_complete);
+				while (options != 10)
+				{
+					getyx(auto_complete, screen_placement, sub_x);
+
+					switch (options)
+					{
+					case KEY_DOWN:
+						wmove(auto_complete, ++screen_placement, sub_x);
+						break;
+					case KEY_UP:
+						wmove(auto_complete, --screen_placement, sub_x);
+						break;
+					}
+					options = wgetch(auto_complete);
+				}
+				keypad(auto_complete, false);
+				wclear(auto_complete);
+				wrefresh(auto_complete);
+				delwin(auto_complete);
+				keypad(sub, true);
+				int offset = _previous_word.size() - 1;
+				wmove(sub, y, x - offset);
+				int print_vector = screen_placement - 1;
+				waddstr(sub, print[print_vector].c_str());
 			}
+			_previous_word.clear();
 			print.clear();
 			_check_trie = "";
+			wrefresh(sub);
 			break;
 		//Lets the user backspace and delete characters
 		case 8:
