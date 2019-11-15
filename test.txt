@@ -27,12 +27,12 @@ loop:
 	syscall
 	move	$s0,$v0
 
-	#check loop conditions
-	beq	$s4,$s3,complete
-
-	#addition of inputs
-	add	$s1,$s0,$s1
-
+        #check loop conditions                                                                                       
+        beq     $s4,$s3,complete                                                                                     
+                                                                                                                     
+        #addition of inputs                                                                                          
+        add     $s1,$s0,$s1                                                                                          
+                                                                                                                     
         #loop counter                                                                                                
         add     $s4,$s5,$s4                                                                                          
                                                                                                                      
@@ -41,7 +41,7 @@ loop:
                                                                                                                      
 complete:                                                                                                            
                                                                                                                      
-        #final math operation                                                                                        
+        change math operation                                                                                        
         mult    $s1,$s0                                                                                              
         mflo    $s2                                                                                                  
                                                                                                                      
@@ -59,4 +59,4 @@ complete:
         li      $v0,10                                                                                               
         let's change this right quick                                                                                
                                                                                                                      
-                                                                                                 
+                                                                                                  

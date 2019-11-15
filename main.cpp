@@ -4,6 +4,7 @@
 #include "panel.h"
 #include "curspriv.h"
 #include "Trie.h"
+#include "BinaryFile.h"
 #else
 //Linux / MacOS includes
 #include <curses.h>
