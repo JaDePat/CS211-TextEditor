@@ -10,6 +10,8 @@
 
 using namespace std;
 
+unordered_map<string, string> _binary_mapping{};
+
 string binaryConverter(int n)
 {
 	int _binary_value = 0;
@@ -85,7 +87,6 @@ unordered_map<string, int> countWords(string words)
 void Compress(string input, string _out_file)
 {
 	unordered_map<string, int> _the_one;
-	unordered_map<string, string> _binary_mapping{};
 	string tester = input;
 	string catcher;
 	string holder = "";
@@ -109,7 +110,7 @@ void Compress(string input, string _out_file)
 	{
 		catcher = binaryConverter(counter);
 		_binary_mapping.insert({ max_pq.top().second, catcher });
-		_file2 << max_pq.top().second << ", " << catcher << endl;
+		_file2 << max_pq.top().second << "," << catcher << endl;
 		max_pq.pop();
 		counter++;
 	}

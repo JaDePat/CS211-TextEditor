@@ -36,12 +36,15 @@ Trie dictionary{};
 
 //array of character for catching input string
 char input[80];
+char* _save{};
 vector<vector<char>> saver(0);
 vector<vector<char>> saver2(0);
 vector<char> char_saver(0);
 vector<string> print{};
 vector<char> _previous_word{};
+vector<char> _all_char{};
 string _check_trie = "";
+string _for_compression = "";
 
 //initialization of files
 ifstream myfile;
@@ -141,6 +144,7 @@ void typing()
 		noecho();
 		result = wgetch(sub);
 		_previous_word.push_back(result);
+		_all_char.push_back(result);
 		if (result == ' ')
 		{
 			_previous_word.clear();
@@ -152,6 +156,28 @@ void typing()
 		//cases for the caught character
 		switch (result)
 		{
+
+		//For saving compressed text
+		case ctrl('z'):
+			echo();
+			_all_char.pop_back();
+			for (int i = 0; i < _all_char.size(); i++)
+			{
+				_for_compression = _for_compression + _all_char[i];
+			}
+
+			mvwaddstr(sub, y + 1, 0, "Enter title for save file: ");
+			wrefresh(sub);
+			_save = new char[_all_char.size()];
+			wgetstr(sub, _save);
+			Compress(_for_compression, _save);
+
+			getyx(sub, y, x);
+			mvwaddstr(sub, sub_rows - 1, sub_cols - 24, "File compressed & saved.");
+			wmove(sub, y, x);
+			noecho();
+			delete[] _save;
+			break;
 
 		//Will open autocomplete box
 		case ALT_O:
@@ -222,9 +248,11 @@ void typing()
 			break;
 		//Lets the user backspace and delete characters
 		case 8:
-			wprintw(sub, "\b");
+			wmove(sub, y, x - 1);
 			wprintw(sub, " ");
-			mvwaddch(sub, y, x, result);
+			wmove(sub, y, x - 1);
+			_all_char.pop_back();
+			_all_char.pop_back();
 			break;
 
 		//custom enter key
