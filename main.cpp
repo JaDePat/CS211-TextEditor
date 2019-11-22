@@ -5,6 +5,7 @@
 #include "curspriv.h"
 #include "Trie.h"
 #include "BinaryFile.h"
+#include "QuickSort.h"
 #else
 //Linux / MacOS includes
 #include <curses.h>
@@ -33,6 +34,9 @@ WINDOW* auto_complete = nullptr;
 
 //initialize the trie
 Trie dictionary{};
+
+//create QuickSort instance
+QuickSort<string> _to_sort{};
 
 //array of character for catching input string
 char input[80];
