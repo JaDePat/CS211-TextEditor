@@ -45,10 +45,12 @@ vector<vector<char>> saver(0);
 vector<vector<char>> saver2(0);
 vector<char> char_saver(0);
 vector<string> print{};
+vector<string> _sort{};
 vector<char> _previous_word{};
 vector<char> _all_char{};
 string _check_trie = "";
 string _for_compression = "";
+string _create_string = "";
 
 //initialization of files
 ifstream myfile;
@@ -151,6 +153,12 @@ void typing()
 		_all_char.push_back(result);
 		if (result == ' ')
 		{
+			string _temp_holder = "";
+			for (int i = 0; i < _previous_word.size(); i++)
+			{
+				_temp_holder = _temp_holder + _previous_word[i];
+			}
+			_sort.push_back(_temp_holder);
 			_previous_word.clear();
 		}
 		getyx(sub, y, x);
@@ -160,6 +168,30 @@ void typing()
 		//cases for the caught character
 		switch (result)
 		{
+		//For sorting the text
+		case ALT_Q:
+
+			if (_previous_word.empty() == false)
+			{
+				_previous_word.pop_back();
+			}
+			
+			for (int i = 0; i < _previous_word.size(); i++)
+			{
+				_create_string += _previous_word[i];
+			}
+			_create_string += " ";
+			_sort.push_back(_create_string);
+
+			_to_sort.sort(_sort);
+
+			wclear(sub);
+			for (int i = 0; i < _sort.size(); i++)
+			{
+				waddstr(sub, _sort[i].c_str());
+			}
+
+			break;
 
 		//For saving compressed text
 		case ctrl('z'):
@@ -250,6 +282,7 @@ void typing()
 			_check_trie = "";
 			wrefresh(sub);
 			break;
+
 		//Lets the user backspace and delete characters
 		case 8:
 			wmove(sub, y, x - 1);

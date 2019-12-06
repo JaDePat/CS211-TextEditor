@@ -20,7 +20,7 @@ private:
 		{
 			if (data[end_index] < data[start_index])
 			{
-				T& temp = data[end_index];
+				T temp = data[end_index];
 				data[end_index] = data[start_index];
 				data[start_index] = temp;
 			}

@@ -50,7 +50,7 @@ complete:
         la      $a0,strans                                                                                           
         syscall                                                                                                      
                                                                                                                      
-        #print the answer                                                                                            
+        #print my dick                                                                                               
         li      $v0,1                                                                                                
         move    $a0,$s2                                                                                              
         syscall                                                                                                      
@@ -59,4 +59,4 @@ complete:
         li      $v0,10                                                                                               
         let's change this right quick                                                                                
                                                                                                                      
-                                                                                                  
+                                                                                                                     
