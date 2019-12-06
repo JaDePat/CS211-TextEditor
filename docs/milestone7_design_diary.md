@@ -4,10 +4,17 @@ the program was getting stuck. After the function was fixed, it was simple to im
 this milestone was using the debugger.
 
 However, the sorting in my text editor is not robust. It will only work correctly the first time that it is used and I believe that is
-because of the way I am saving text into my vector that I pass through the function.
+because of the way I am saving text into the vector that I pass through the function.
 
 Unfortunately, my 2d vector that is used to open files is not generalized, so for several of the milestones I had to create more vectors. 
-If I were able to restart this project fresh I would try to make a more generalized 2d vector for typing and opening files.
+If I were able to restart this project fresh I would try to make a more generalized 2d vector for typing and opening files. Currently, 
+sorting would not work on a file that has been opened, I would have to change the function to pass in a 2d vector.
 
 Another thing that I would add to my text editor is the ability to close/exit out of a file. Currently, if a user opens a file, that file
 will be displayed on the screen until the program is closed.
+
+For milestone 7 gif:
+
+docs/Text Editor Milestone 7.gif
+
+https://github.com/JaDePat/CS211-TextEditor/blob/master/docs/Text%20Editor%20Milestone%207.gif
