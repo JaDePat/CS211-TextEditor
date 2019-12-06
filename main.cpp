@@ -103,6 +103,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
+
 	//initializes the main window
 	WINDOW* main_window = nullptr;
 
